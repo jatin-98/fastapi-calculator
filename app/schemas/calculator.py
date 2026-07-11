@@ -1,10 +1,11 @@
 from pydantic import BaseModel
+from typing import Literal
 
 
 class CalculatorRequest(BaseModel):
     a: float
     b: float
-    operation: str
+    operation: Literal["add", "subtract", "multiply", "divide"]
 
 
 class CalculatorResponse(BaseModel):
