@@ -16,8 +16,10 @@ run-dev:
 	./scripts/run_dev.sh
 
 run-prod:
-	@printf "${BLUE}==> Starting Gunicorn Production Server...${NC}\n"
-	./scripts/run_prod.sh
+	@printf "${BLUE}==> Building Docker Production Image...${NC}\n"
+	docker build -t calculator-api-prod .
+	@printf "${BLUE}==> Starting Docker Production Container on port 8000...${NC}\n"
+	docker run -it --rm -p 8000:8000 calculator-api-prod
 
 tests:
 	@printf "${BLUE}==> Running Pytest...${NC}\n"
