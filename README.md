@@ -68,12 +68,17 @@ make install
 chmod +x scripts/run_dev.sh scripts/run_prod.sh
 ```
 
-### 3. Run the Development Server
+### 3. Run the Test Suite
+```bash
+make tests
+```
+
+### 4. Run the Development Server
 ```bash
 make run-dev
 ```
 
-### 4. Run the Production Server
+### 5. Run the Production Server
 ```bash
 make run-prod
 ```
@@ -86,10 +91,10 @@ Check out the interactive API documentation at [http://localhost:8000/docs](http
 Once the basic routing is set up, development of the calculator functionality should proceed in three distinct phases:
 
 ### Phase 1: Define the Data (The Schemas)
-Create `app/schemas/calculator.py` using Pydantic to validate incoming JSON requests (e.g., ensuring a `CalculationRequest` has two numbers and an operation type).
+Create `app/schemas/calculator.py` using Pydantic to validate incoming JSON requests (e.g., ensuring a `CalculatorRequest` receives a valid mathematical `expression` string).
 
 ### Phase 2: Build the Brains (The Services)
-Create `app/services/calculator.py`. Write pure Python math functions (e.g., `def add(a: float, b: float) -> float:`) here. This keeps business logic completely separate from FastAPI endpoints.
+Create `app/services/calculator.py`. Write pure Python math functions (like an AST parser) here. This keeps business logic completely separate from FastAPI endpoints.
 
 ### Phase 3: Connect the Endpoint
 Update `app/api/v1/endpoints/calculator.py` to receive the validated data (from Phase 1), pass it to the math functions (from Phase 2), and return the final result to the user.

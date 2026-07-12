@@ -7,9 +7,9 @@ router = APIRouter()
 
 
 @router.post("/", response_model=CalculatorResponse)
-def calculate(request: CalculatorRequest):
+async def calculate(request: CalculatorRequest):
     try:
         result = evaluate_expression(request.expression)
         return {"result": result}
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid Expression")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -1,10 +1,4 @@
-from fastapi.testclient import TestClient
-from app.main import app
-
-client = TestClient(app)
-
-
-def test_api_calculate_add():
+def test_api_calculate_add(client):
     response = client.post(
         "/api/v1/calculator/",
         json={"expression": "10 + 5"},
@@ -13,7 +7,7 @@ def test_api_calculate_add():
     assert response.json() == {"result": 15.0}
 
 
-def test_api_calculate_subtract():
+def test_api_calculate_subtract(client):
     response = client.post(
         "/api/v1/calculator/",
         json={"expression": "10 - 5"},
@@ -22,7 +16,7 @@ def test_api_calculate_subtract():
     assert response.json() == {"result": 5.0}
 
 
-def test_api_calculate_multiply():
+def test_api_calculate_multiply(client):
     response = client.post(
         "/api/v1/calculator/",
         json={"expression": "10 * 5"},
@@ -31,7 +25,7 @@ def test_api_calculate_multiply():
     assert response.json() == {"result": 50.0}
 
 
-def test_api_calculate_divide():
+def test_api_calculate_divide(client):
     response = client.post(
         "/api/v1/calculator/",
         json={"expression": "10 / 5"},
@@ -40,7 +34,7 @@ def test_api_calculate_divide():
     assert response.json() == {"result": 2.0}
 
 
-def test_api_calculate_chained():
+def test_api_calculate_chained(client):
     response = client.post(
         "/api/v1/calculator/",
         json={"expression": "1 + 5 + 7 - 2"},
@@ -49,7 +43,7 @@ def test_api_calculate_chained():
     assert response.json() == {"result": 11.0}
 
 
-def test_api_calculate_invalid_expression():
+def test_api_calculate_invalid_expression(client):
     response = client.post(
         "/api/v1/calculator/",
         json={"expression": "invalid_op"},
@@ -58,10 +52,19 @@ def test_api_calculate_invalid_expression():
     assert response.status_code == 400
 
 
-def test_api_calculate_missing_field():
+def test_api_calculate_missing_field(client):
     # Pydantic schema validation should block missing fields
     response = client.post(
         "/api/v1/calculator/",
         json={"wrong_field": "10 + 5"},
+    )
+    assert response.status_code == 422
+
+
+def test_api_calculate_empty_string(client):
+    # Pydantic schema validation should block empty strings due to min_length=1
+    response = client.post(
+        "/api/v1/calculator/",
+        json={"expression": ""},
     )
     assert response.status_code == 422

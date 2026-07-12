@@ -10,7 +10,7 @@ env/
 venv/
 ENV/
 
-# Sensitiver Information
+# Sensitive Information
 *.pem
 
 # IDE / Editor folders and files

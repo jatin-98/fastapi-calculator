@@ -26,6 +26,15 @@ def test_evaluate_expression_parenthesis():
     assert evaluate_expression("(10 + 5) * 2") == 30.0
 
 
+def test_evaluate_expression_division_by_zero():
+    with pytest.raises(ValueError, match="Division by zero is not allowed"):
+        evaluate_expression("1 / 0")
+
+
+def test_evaluate_expression_unary_minus():
+    assert evaluate_expression("-5 + 3") == -2.0
+
+
 def test_evaluate_expression_invalid_operation():
     with pytest.raises(ValueError):
         evaluate_expression("invalid")

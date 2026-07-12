@@ -1,14 +1,13 @@
 import ast
-import numpy as np
+import operator
 
-# Map AST operator nodes to NumPy functions
 _AST_OPERATORS = {
-    ast.Add: np.add,
-    ast.Sub: np.subtract,
-    ast.Mult: np.multiply,
-    ast.Div: np.divide,
-    ast.USub: np.negative,  # Handles unary minus (e.g., -5)
-    ast.UAdd: np.positive,  # Handles unary plus (e.g., +5)
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
 }
 
 
@@ -31,7 +30,10 @@ def _eval_node(node) -> float:
         op_type = type(node.op)
 
         if op_type in _AST_OPERATORS:
-            return float(_AST_OPERATORS[op_type](left, right))
+            try:
+                return float(_AST_OPERATORS[op_type](left, right))
+            except ZeroDivisionError:
+                raise ValueError("Division by zero is not allowed")
         raise ValueError(f"Unsupported operator: {op_type.__name__}")
 
     # If it's a unary operation (e.g., -5)
@@ -48,12 +50,21 @@ def _eval_node(node) -> float:
 
 
 def evaluate_expression(expression: str) -> float:
+    """
+    Safely evaluates a mathematical expression string using an Abstract Syntax Tree (AST).
+
+    Args:
+        expression (str): The mathematical expression to evaluate (e.g., "1 + 5 * 2").
+
+    Returns:
+        float: The calculated result.
+
+    Raises:
+        ValueError: If the expression contains invalid syntax, unsupported operations, or division by zero.
+    """
     try:
-        # Parse the string into an AST in 'eval' mode
-        # This safely builds the tree but executes NOTHING
         tree = ast.parse(expression, mode="eval")
     except SyntaxError:
         raise ValueError("Invalid mathematical expression")
 
-    # Walk down the tree and calculate the math
     return _eval_node(tree)

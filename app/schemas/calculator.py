@@ -1,9 +1,8 @@
-from pydantic import Field
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CalculatorRequest(BaseModel):
-    expression: str = Field(..., description="Expression to evaluate")
+    expression: str = Field(..., min_length=1, description="Expression to evaluate")
 
 
 class CalculatorResponse(BaseModel):
