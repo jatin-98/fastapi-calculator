@@ -1,10 +1,8 @@
 # FastAPI Calculator
 
-An industry-standard FastAPI application designed for learning Python and modern web API architecture.
+A FastAPI application that evaluates mathematical expressions safely using Python's built-in AST (Abstract Syntax Tree) parser — no `eval()`, no external math libraries.
 
 ## Project Structure
-
-This project follows a highly scalable, enterprise-grade directory structure:
 
 ```text
 fastapi-calculator/
@@ -23,42 +21,41 @@ fastapi-calculator/
 │   │           └── calculator.py
 │   │
 │   ├── core/                   # Application-wide configurations
-│   │   ├── __init__.py
-│   │   ├── config.py           # Environment variables (Pydantic BaseSettings)
-│   │   └── exceptions.py       # Custom exception handlers
+│   │   └── config.py           # Environment variables (Pydantic BaseSettings)
 │   │
-│   ├── schemas/                # Pydantic models (Data validation)
+│   ├── schemas/                # Pydantic models (request & response validation)
 │   │   ├── __init__.py
-│   │   └── calculator.py       
+│   │   └── calculator.py
 │   │
 │   └── services/               # Core business logic
 │       ├── __init__.py
-│       └── calculator.py       
+│       └── calculator.py       # AST-based expression evaluator
 │
 ├── tests/                      # Automated tests (pytest)
-│   ├── api/                    
-│   └── services/               
+│   ├── conftest.py             # Shared fixtures (TestClient)
+│   ├── api/
+│   │   └── test_endpoints.py   # Integration tests for the API layer
+│   └── services/
+│       └── test_logic.py       # Unit tests for the service layer
 │
 ├── requirements/               # Python dependencies
 │   ├── base.txt                # Production dependencies
-│   └── dev.txt                 # Development dependencies
+│   └── dev.txt                 # Development dependencies (includes pytest, black)
 │
 ├── scripts/                    # Execution scripts
-│   ├── run_dev.sh              # Local development server
-│   └── run_prod.sh             # Production server (Gunicorn)
+│   ├── run_dev.sh              # Local development server (uvicorn --reload)
+│   └── run_prod.sh             # Production server (Gunicorn + Uvicorn workers)
 │
 ├── .env.example                # Template for environment variables
 ├── .gitignore                  # Git ignore file
-├── docker-compose.yml          # Local environment orchestration
-├── Dockerfile                  # Production image definition
-├── Makefile                    # Developer aliases
+├── Makefile                    # Developer command aliases
 └── README.md                   # Project documentation
 ```
 
 ## Getting Started
 
 ### 1. Setup the Virtual Environment
-Create a virtual environment and install the required dependencies (requires Python 3.11+):
+Create a virtual environment and install all dependencies (requires Python 3.11+):
 ```bash
 make install
 ```
@@ -83,18 +80,46 @@ make run-dev
 make run-prod
 ```
 
-The API will be available at [http://localhost:8000](http://localhost:8000).
+The API will be available at [http://localhost:8000](http://localhost:8000).  
 Check out the interactive API documentation at [http://localhost:8000/docs](http://localhost:8000/docs).
 
-## Development Phases
+## API Usage
 
-Once the basic routing is set up, development of the calculator functionality should proceed in three distinct phases:
+### `POST /api/v1/calculator/`
 
-### Phase 1: Define the Data (The Schemas)
-Create `app/schemas/calculator.py` using Pydantic to validate incoming JSON requests (e.g., ensuring a `CalculatorRequest` receives a valid mathematical `expression` string).
+Evaluates a mathematical expression and returns the result.
 
-### Phase 2: Build the Brains (The Services)
-Create `app/services/calculator.py`. Write pure Python math functions (like an AST parser) here. This keeps business logic completely separate from FastAPI endpoints.
+**Request body:**
+```json
+{
+  "expression": "10 * (3 + 2) / 5"
+}
+```
 
-### Phase 3: Connect the Endpoint
-Update `app/api/v1/endpoints/calculator.py` to receive the validated data (from Phase 1), pass it to the math functions (from Phase 2), and return the final result to the user.
+**Response:**
+```json
+{
+  "result": 10.0
+}
+```
+
+**Supported operators:** `+`, `-`, `*`, `/`, unary `-` and `+`, and parentheses `()`.
+
+**Error response (400):** Returned for invalid or unsupported expressions.
+```json
+{
+  "detail": "Division by zero is not allowed"
+}
+```
+
+**Error response (422):** Returned by Pydantic when the request body is malformed (e.g., missing `expression` field or empty string).
+
+## Developer Commands
+
+| Command | Description |
+|---|---|
+| `make install` | Create venv and install all dependencies |
+| `make tests` | Run the full test suite with pytest |
+| `make format` | Auto-format code with Black |
+| `make run-dev` | Start the uvicorn development server (auto-reload) |
+| `make run-prod` | Start the Gunicorn production server (4 workers) |
