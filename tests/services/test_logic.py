@@ -1,23 +1,41 @@
 import pytest
-from app.services.calculator import perform_calculation
+from app.services.calculator import evaluate_expression
 
 
-def test_perform_calculation_add():
-    assert perform_calculation(5.0, 3.0, "add") == 8.0
+def test_evaluate_expression_add():
+    assert evaluate_expression("5.0 + 3.0") == 8.0
 
 
-def test_perform_calculation_subtract():
-    assert perform_calculation(5.0, 3.0, "subtract") == 2.0
+def test_evaluate_expression_subtract():
+    assert evaluate_expression("5.0 - 3.0") == 2.0
 
 
-def test_perform_calculation_multiply():
-    assert perform_calculation(5.0, 3.0, "multiply") == 15.0
+def test_evaluate_expression_multiply():
+    assert evaluate_expression("5.0 * 3.0") == 15.0
 
 
-def test_perform_calculation_divide():
-    assert perform_calculation(6.0, 3.0, "divide") == 2.0
+def test_evaluate_expression_divide():
+    assert evaluate_expression("6.0 / 3.0") == 2.0
 
 
-def test_perform_calculation_invalid_operation():
-    with pytest.raises(ValueError, match="Invalid Operation"):
-        perform_calculation(5.0, 3.0, "invalid")
+def test_evaluate_expression_chained():
+    assert evaluate_expression("1 + 5 + 7 - 2") == 11.0
+
+
+def test_evaluate_expression_parenthesis():
+    assert evaluate_expression("(10 + 5) * 2") == 30.0
+
+
+def test_evaluate_expression_invalid_operation():
+    with pytest.raises(ValueError):
+        evaluate_expression("invalid")
+
+
+def test_evaluate_expression_security_eval():
+    with pytest.raises(ValueError, match="Unsupported syntax"):
+        evaluate_expression("eval('1+1')")
+
+
+def test_evaluate_expression_security_import():
+    with pytest.raises(ValueError, match="Unsupported syntax"):
+        evaluate_expression("__import__('os').system('echo hello')")

@@ -1,12 +1,10 @@
+from pydantic import Field
 from pydantic import BaseModel
-from typing import Literal
 
 
 class CalculatorRequest(BaseModel):
-    a: float
-    b: float
-    operation: Literal["add", "subtract", "multiply", "divide"]
+    expression: str = Field(..., description="Expression to evaluate")
 
 
 class CalculatorResponse(BaseModel):
-    result: float
+    result: float = Field(..., description="Result of the evaluation")
