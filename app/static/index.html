@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="A secure, AST-powered calculator built with FastAPI. Evaluate complex mathematical expressions instantly." />
+    <title>FastAPI Calculator</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="container">
+        <!-- Theme Toggle -->
+        <div class="theme-toggle-wrapper">
+            <button id="theme-toggle" title="Toggle theme">
+                <span id="theme-icon">☀️</span>
+                <span id="theme-label">Light Mode</span>
+            </button>
+        </div>
+
+        <div class="header">
+            <div class="badge">⚡ Powered by FastAPI + AST</div>
+            <h1>Calculator</h1>
+            <p>
+                Safely evaluates any math expression.<br />No
+                <code>eval()</code> — ever.
+            </p>
+        </div>
+
+        <div class="card">
+            <div class="form-group">
+                <label for="expression-input">Expression</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">∑</span>
+                    <input id="expression-input" type="text" placeholder="e.g. 10 * (3 + 2) / 5" autocomplete="off"
+                        spellcheck="false" />
+                </div>
+            </div>
+
+            <div class="examples" id="examples">
+                <span class="example-chip" data-expr="1 + 5 + 7 - 2">1+5+7-2</span>
+                <span class="example-chip" data-expr="(10 + 5) * 2">(10+5)*2</span>
+                <span class="example-chip" data-expr="100 / 4 - 3">100/4-3</span>
+                <span class="example-chip" data-expr="-5 + 3">-5+3</span>
+                <span class="example-chip" data-expr="1 / 0">1/0</span>
+            </div>
+
+            <button id="calculate-btn" type="button">
+                <span id="btn-text">Calculate</span>
+            </button>
+
+            <div id="result-box">
+                <div class="result-label" id="result-label">Result</div>
+                <div id="result-value"></div>
+            </div>
+
+            <hr class="divider" />
+
+            <p class="hint">
+                Supports <code>+&nbsp; −&nbsp; ×&nbsp; ÷</code>, parentheses,
+                decimals, and unary minus. Parsed safely using Python's built-in AST
+                module.
+            </p>
+        </div>
+
+        <div class="footer">
+            <a href="/docs" target="_blank">API Docs →</a>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById("expression-input");
+        const btn = document.getElementById("calculate-btn");
+        const btnText = document.getElementById("btn-text");
+        const resultBox = document.getElementById("result-box");
+        const resultValue = document.getElementById("result-value");
+        const resultLabel = document.getElementById("result-label");
+        const themeToggle = document.getElementById("theme-toggle");
+        const themeIcon = document.getElementById("theme-icon");
+        const themeLabel = document.getElementById("theme-label");
+        const html = document.documentElement;
+
+        // ── Theme persistence ──
+        const savedTheme = localStorage.getItem("theme") || "dark";
+        applyTheme(savedTheme);
+
+        themeToggle.addEventListener("click", () => {
+            const current = html.getAttribute("data-theme");
+            applyTheme(current === "dark" ? "light" : "dark");
+        });
+
+        function applyTheme(theme) {
+            html.setAttribute("data-theme", theme);
+            localStorage.setItem("theme", theme);
+            if (theme === "dark") {
+                themeIcon.textContent = "☀️";
+                themeLabel.textContent = "Light Mode";
+            } else {
+                themeIcon.textContent = "🌙";
+                themeLabel.textContent = "Dark Mode";
+            }
+        }
+
+        // ── Example chips ──
+        document.getElementById("examples").addEventListener("click", (e) => {
+            if (e.target.classList.contains("example-chip")) {
+                input.value = e.target.dataset.expr;
+                input.focus();
+            }
+        });
+
+        // ── Keyboard shortcut ──
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") calculate();
+        });
+
+        btn.addEventListener("click", calculate);
+
+        async function calculate() {
+            const expression = input.value.trim();
+            if (!expression) {
+                showError("Please enter an expression first.");
+                return;
+            }
+
+            btn.classList.add("loading");
+            btnText.textContent = "Calculating…";
+
+            try {
+                const response = await fetch("/api/v1/calculator/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ expression }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess(data.result);
+                } else {
+                    showError(data.detail || "An unexpected error occurred.");
+                }
+            } catch (err) {
+                showError("Could not connect to the server. Is it running?");
+            } finally {
+                btn.classList.remove("loading");
+                btnText.textContent = "Calculate";
+            }
+        }
+
+        function showSuccess(value) {
+            resultBox.className = "success";
+            resultLabel.textContent = "Result";
+            resultValue.textContent = value;
+            resultBox.style.display = "block";
+        }
+
+        function showError(message) {
+            resultBox.className = "error";
+            resultLabel.textContent = "Error";
+            resultValue.textContent = message;
+            resultBox.style.display = "block";
+        }
+    </script>
+</body>
+
+</html>
